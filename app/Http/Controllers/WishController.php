@@ -10,8 +10,6 @@ class WishController extends Controller
 {
     /**
      * Show a single wish.
-     *
-     * The contribution totals are placeholders until contributions exist.
      */
     public function show(Wish $wish): Response
     {
@@ -25,8 +23,8 @@ class WishController extends Controller
                 'thumbnail' => $wish->thumbnail,
                 'purchase_link' => $wish->purchase_link,
                 'price' => $wish->price,
-                'received_total' => 0,
-                'contributor_count' => 0,
+                'received_total' => $wish->receivedTotal(),
+                'contributor_count' => $wish->contributorCount(),
                 'owner' => [
                     'id' => $wish->owner->id,
                     'name' => $wish->owner->name,

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Contribution;
 use App\Models\User;
 use App\Models\Wish;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -48,6 +49,50 @@ it('reports no contributions yet', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->where('wish.received_total', 0)
             ->where('wish.contributor_count', 0)
+            ->etc()
+        );
+});
+
+it('counts only paid contributions towards the received total', function () {
+    $wish = Wish::factory()->create();
+
+    Contribution::factory()->forWish($wish)->paid()->create(['amount' => 20_000]);
+    Contribution::factory()->forWish($wish)->paid()->create(['amount' => 5_000]);
+    Contribution::factory()->forWish($wish)->pending()->create(['amount' => 100_000]);
+    Contribution::factory()->paid()->create(['amount' => 70_000]);
+
+    $this->get(route('wishes.show', $wish))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('wish.received_total', 25_000)
+            ->where('wish.contributor_count', 2)
+            ->etc()
+        );
+});
+
+it('counts a contributor once however often they give', function () {
+    $wish = Wish::factory()->create();
+    $contributor = User::factory()->create();
+
+    Contribution::factory()->forWish($wish)->forContributor($contributor)->paid()->create(['amount' => 10_000]);
+    Contribution::factory()->forWish($wish)->forContributor($contributor)->paid()->create(['amount' => 15_000]);
+
+    $this->get(route('wishes.show', $wish))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('wish.received_total', 25_000)
+            ->where('wish.contributor_count', 1)
+            ->etc()
+        );
+});
+
+it('reports a received total that exceeds the price of the wish', function () {
+    $wish = Wish::factory()->create(['price' => 100_000]);
+
+    Contribution::factory()->forWish($wish)->paid()->create(['amount' => 150_000]);
+
+    $this->get(route('wishes.show', $wish))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('wish.price', 100_000)
+            ->where('wish.received_total', 150_000)
             ->etc()
         );
 });
