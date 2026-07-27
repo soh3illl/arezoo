@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int $price
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User $user
+ * @property-read User $owner
  */
 class Wish extends Model
 {
@@ -28,10 +28,12 @@ class Wish extends Model
     protected $guarded = [];
 
     /**
+     * The user this wish belongs to.
+     *
      * @return BelongsTo<User, $this>
      */
-    public function user(): BelongsTo
+    public function owner(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

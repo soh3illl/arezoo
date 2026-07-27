@@ -25,12 +25,12 @@ class WishSeeder extends Seeder
         $users->each(function (User $user): void {
             Wish::factory()
                 ->count(fake()->numberBetween(3, 8))
-                ->for($user)
+                ->forOwner($user)
                 ->create();
 
             Wish::factory()
                 ->withoutThumbnail()
-                ->for($user)
+                ->forOwner($user)
                 ->create();
         });
     }
